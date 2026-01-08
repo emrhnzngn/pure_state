@@ -42,16 +42,16 @@ abstract class PureAuthorizedAction<T> extends PureAction<T> {
   /// By default, throws [UnauthorizedException].
   FutureOr<T> onUnauthorized(T state) {
     throw UnauthorizedException(
-      'Action ${runtimeType} is not authorized',
+      'Action $runtimeType is not authorized',
     );
   }
 
   @override
-  FutureOr<T> execute(T state) async {
-    if (!authorize(state)) {
-      return onUnauthorized(state);
+  FutureOr<T> execute(T currentState) async {
+    if (!authorize(currentState)) {
+      return onUnauthorized(currentState);
     }
-    return executeAuthorized(state);
+    return executeAuthorized(currentState);
   }
 }
 
@@ -155,8 +155,8 @@ abstract class PureValidatedAction<T extends ValidatableState>
   const PureValidatedAction();
 
   @override
-  FutureOr<T> execute(T state) async {
-    final newState = await executeWithoutValidation(state);
+  FutureOr<T> execute(T currentState) async {
+    final newState = await executeWithoutValidation(currentState);
 
     final validation = newState.validate();
     if (validation.isInvalid) {
@@ -220,7 +220,7 @@ abstract class PureRetryableAction<T> extends PureAction<T> {
   /// Override this to log retry attempts or implement backoff strategies.
   void onRetry(int attempt, Object error) {
     debugPrint(
-      'Retrying ${runtimeType} (attempt $attempt/${maxRetries}): $error',
+      'Retrying $runtimeType (attempt $attempt/$maxRetries): $error',
     );
   }
 
@@ -229,7 +229,15 @@ abstract class PureRetryableAction<T> extends PureAction<T> {
   /// Override this to provide fallback behavior.
   /// By default, rethrows the last error.
   FutureOr<T> onRetriesExhausted(T state, Object lastError) {
-    throw lastError;
+    if (lastError is Exception) {
+      final exception = lastError;
+      throw exception;
+    }
+    if (lastError is Error) {
+      final error = lastError;
+      throw error;
+    }
+    throw Exception('Action failed: $lastError');
   }
 
   /// Executes the action with retry logic.
@@ -238,18 +246,18 @@ abstract class PureRetryableAction<T> extends PureAction<T> {
   FutureOr<T> executeWithRetry(T state);
 
   @override
-  Future<T> execute(T state) async {
+  Future<T> execute(T currentState) async {
     var attempt = 0;
     Object? lastError;
 
     while (attempt <= maxRetries) {
       try {
-        return await executeWithRetry(state);
+        return await executeWithRetry(currentState);
       } on Exception catch (error) {
         lastError = error;
 
         if (attempt >= maxRetries || !shouldRetry(error)) {
-          return onRetriesExhausted(state, error);
+          return onRetriesExhausted(currentState, error);
         }
 
         onRetry(attempt + 1, error);
@@ -260,10 +268,10 @@ abstract class PureRetryableAction<T> extends PureAction<T> {
 
     // This should never be reached, but handle it just in case
     if (lastError != null) {
-      return onRetriesExhausted(state, lastError);
+      return onRetriesExhausted(currentState, lastError);
     }
 
-    return state;
+    return currentState;
   }
 }
 
@@ -290,7 +298,7 @@ abstract class PureExponentialBackoffAction<T> extends PureRetryableAction<T> {
   Duration get maxDelay => const Duration(seconds: 60);
 
   /// Multiplier for exponential backoff.
-  double get backoffMultiplier => 2.0;
+  double get backoffMultiplier => 2;
 
   @override
   Duration get retryDelay {
@@ -307,7 +315,7 @@ abstract class PureExponentialBackoffAction<T> extends PureRetryableAction<T> {
     );
 
     debugPrint(
-      'Retrying ${runtimeType} (attempt $attempt/${maxRetries}) '
+      'Retrying $runtimeType (attempt $attempt/$maxRetries) '
       'after ${delay.inMilliseconds}ms: $error',
     );
   }

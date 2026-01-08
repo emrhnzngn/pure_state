@@ -1,36 +1,88 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/material.dart';
 import 'package:pure_state/src/pure_equality.dart';
 import 'package:pure_state/src/pure_store.dart';
-import 'package:flutter/material.dart';
 
 /// Internal LRU (Least Recently Used) cache implementation.
 ///
 /// Used for memoizing selector functions to improve performance.
+/// Supports adaptive sizing based on hit/miss ratio.
 class _LRUCache<K, V> {
   /// Creates a new LRU cache with the specified maximum size.
-  _LRUCache({this.maxSize = 100})
-    : assert(maxSize > 0, 'maxSize must be greater than 0');
+  ///
+  /// - [maxSize]: Initial maximum cache size
+  /// - [enableAdaptiveSizing]: Whether to enable adaptive cache sizing (default: false)
+  /// - [minSize]: Minimum cache size when adaptive sizing is enabled
+  /// - [maxAdaptiveSize]: Maximum cache size when adaptive sizing is enabled
+  _LRUCache({
+    this.maxSize = 100,
+    this.enableAdaptiveSizing = false,
+    int? minSize,
+    int? maxAdaptiveSize,
+  }) : assert(maxSize > 0, 'maxSize must be greater than 0'),
+       _currentMaxSize = maxSize,
+       _minSize = minSize ?? (maxSize ~/ 2),
+       _maxAdaptiveSize = maxAdaptiveSize ?? (maxSize * 3) {
+    assert(_minSize > 0, 'minSize must be greater than 0');
+    assert(
+      _maxAdaptiveSize >= _currentMaxSize,
+      'maxAdaptiveSize must be >= maxSize',
+    );
+  }
 
-  /// Maximum number of items in the cache.
+  /// Initial maximum number of items in the cache.
   final int maxSize;
+
+  /// Current maximum size (can change if adaptive sizing is enabled).
+  int _currentMaxSize;
+
+  /// Whether adaptive sizing is enabled.
+  final bool enableAdaptiveSizing;
+
+  /// Minimum cache size when adaptive sizing is enabled.
+  final int _minSize;
+
+  /// Maximum cache size when adaptive sizing is enabled.
+  final int _maxAdaptiveSize;
 
   /// Internal storage using LinkedHashMap for O(1) access and order tracking.
   final LinkedHashMap<K, V> _cache = LinkedHashMap();
+
+  /// Number of cache hits.
+  int _hits = 0;
+
+  /// Number of cache misses.
+  int _misses = 0;
+
+  /// Number of accesses before recalculating adaptive size.
+  static const int _accessCountBeforeAdaptation = 100;
+
+  /// Hit ratio threshold for increasing cache size (0.7 = 70%).
+  static const double _hitRatioThresholdForIncrease = 0.7;
+
+  /// Miss ratio threshold for decreasing cache size (0.5 = 50%).
+  static const double _missRatioThresholdForDecrease = 0.5;
 
   V? get(K key) {
     final value = _cache.remove(key);
     if (value != null) {
       _cache[key] = value;
+      _hits++;
+      _checkAdaptiveSize();
+      return value;
+    } else {
+      _misses++;
+      _checkAdaptiveSize();
+      return null;
     }
-    return value;
   }
 
   void put(K key, V value) {
     if (_cache.containsKey(key)) {
       _cache.remove(key);
-    } else if (_cache.length >= maxSize) {
+    } else if (_cache.length >= _currentMaxSize) {
       _cache.remove(_cache.keys.first);
     }
     _cache[key] = value;
@@ -38,14 +90,72 @@ class _LRUCache<K, V> {
 
   void clear() {
     _cache.clear();
+    _hits = 0;
+    _misses = 0;
   }
 
   /// Current number of items in the cache.
   int get length => _cache.length;
+
+  /// Current maximum cache size.
+  int get currentMaxSize => _currentMaxSize;
+
+  /// Cache hit ratio (0 to 1).
+  double get hitRatio {
+    final total = _hits + _misses;
+    if (total == 0) return 0;
+    return _hits / total;
+  }
+
+  /// Total number of accesses (hits + misses).
+  int get totalAccesses => _hits + _misses;
+
+  /// Checks if cache size should be adjusted based on hit/miss ratio.
+  void _checkAdaptiveSize() {
+    if (!enableAdaptiveSizing) return;
+
+    final total = _hits + _misses;
+    if (total < _accessCountBeforeAdaptation) return;
+
+    final hitRatio = this.hitRatio;
+
+    // Increase cache size if hit ratio is high (cache is effective)
+    if (hitRatio >= _hitRatioThresholdForIncrease &&
+        _currentMaxSize < _maxAdaptiveSize) {
+      final newSize = (_currentMaxSize * 1.5)
+          .clamp(
+            _currentMaxSize + 1,
+            _maxAdaptiveSize,
+          )
+          .toInt();
+      _currentMaxSize = newSize;
+      // Reset counters after adjustment
+      _hits = 0;
+      _misses = 0;
+    }
+    // Decrease cache size if miss ratio is high (cache not effective)
+    else if (hitRatio <= (1 - _missRatioThresholdForDecrease) &&
+        _currentMaxSize > _minSize) {
+      final newSize = (_currentMaxSize * 0.75)
+          .clamp(
+            _minSize,
+            _currentMaxSize - 1,
+          )
+          .toInt();
+      _currentMaxSize = newSize;
+      // Remove excess entries
+      while (_cache.length > _currentMaxSize && _cache.isNotEmpty) {
+        _cache.remove(_cache.keys.first);
+      }
+      // Reset counters after adjustment
+      _hits = 0;
+      _misses = 0;
+    }
+  }
 }
 
 /// Default cache size for selector memoization.
-const int defaultSelectorCacheSize = 50;
+const int defaultSelectorCacheSize = 100;
 
 /// Memoizes a function to cache results and improve performance.
 ///
@@ -53,9 +163,16 @@ const int defaultSelectorCacheSize = 50;
 ///
 /// - [calculator]: The function to memoize
 /// - [cacheSize]: Maximum cache size (default: [defaultSelectorCacheSize])
-R Function(T) memoize<T, R>(R Function(T) calculator, {int? cacheSize}) {
+/// - [enableAdaptiveSizing]: Whether to enable adaptive cache sizing (default: true)
+///   When enabled, cache size automatically adjusts based on hit/miss ratio.
+R Function(T) memoize<T, R>(
+  R Function(T) calculator, {
+  int? cacheSize,
+  bool enableAdaptiveSizing = true,
+}) {
   final lruCache = _LRUCache<int, R>(
     maxSize: cacheSize ?? defaultSelectorCacheSize,
+    enableAdaptiveSizing: enableAdaptiveSizing,
   );
   T? prevInput;
   R? prevResult;
@@ -136,6 +253,7 @@ class PureSelector<T, K> extends StatefulWidget {
   /// - [debounce]: Optional debounce duration for updates
   /// - [selectorId]: Optional ID to identify selector changes
   /// - [cacheSize]: Maximum cache size for memoization (default: [defaultSelectorCacheSize])
+  /// - [enableAdaptiveSizing]: Whether to enable adaptive cache sizing (default: true)
   /// - [useRepaintBoundary]: Whether to wrap in RepaintBoundary for performance
   const PureSelector({
     required this.store,
@@ -145,6 +263,7 @@ class PureSelector<T, K> extends StatefulWidget {
     this.debounce,
     this.selectorId,
     this.cacheSize,
+    this.enableAdaptiveSizing = true,
     this.useRepaintBoundary = false,
   });
 
@@ -170,7 +289,18 @@ class PureSelector<T, K> extends StatefulWidget {
   ///
   /// Larger cache sizes improve performance for frequently changing states
   /// but use more memory. Default is [defaultSelectorCacheSize].
+  ///
+  /// If [enableAdaptiveSizing] is true (default), this is the initial size
+  /// and will automatically adjust based on cache hit/miss ratio.
   final int? cacheSize;
+
+  /// Whether to enable adaptive cache sizing.
+  ///
+  /// When enabled (default: true), the cache size automatically adjusts
+  /// based on hit/miss ratio to optimize memory usage and performance.
+  /// Cache size can grow up to 3x the initial size or shrink down to 50%
+  /// of the initial size based on effectiveness.
+  final bool enableAdaptiveSizing;
 
   /// Whether to wrap the built widget in a RepaintBoundary.
   final bool useRepaintBoundary;
@@ -198,6 +328,7 @@ class _PureSelectorState<T, K> extends State<PureSelector<T, K>> {
     _memoizedSelector = memoize<T, K>(
       widget.selector,
       cacheSize: widget.cacheSize,
+      enableAdaptiveSizing: widget.enableAdaptiveSizing,
     );
   }
 

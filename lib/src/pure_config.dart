@@ -1,3 +1,5 @@
+import 'package:pure_state/pure_state.dart';
+
 /// Global configuration for PureState package.
 ///
 /// Use this class to configure global behaviors such as performance optimizations,

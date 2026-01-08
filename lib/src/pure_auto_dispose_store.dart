@@ -12,7 +12,7 @@ import 'package:pure_state/src/pure_store.dart';
 /// - Cleaning up resources for ephemeral stores
 /// - Managing lifecycle of dynamically created stores
 ///
-/// **Important:** Use [listenTracked] instead of [stream.listen] to enable
+/// **Important:** Use [listenTracked] instead of `stream.listen` to enable
 /// auto-dispose functionality.
 ///
 /// Example:
@@ -39,7 +39,7 @@ class PureAutoDisposeStore<T> extends PureStore<T> {
   /// - [onAutoDispose]: Optional callback when auto-dispose triggers
   /// - Other parameters are passed to [PureStore]
   PureAutoDisposeStore(
-    super.state, {
+    super._state, {
     this.keepAliveFor = const Duration(seconds: 60),
     this.onAutoDispose,
     super.onEvent,
@@ -267,8 +267,14 @@ mixin ListenerTrackingMixin<T> on PureStore<T> {
   final Map<String, _ListenerInfo> _listeners = {};
 
   /// Registers a listener with tracking.
+  ///
+  /// The subscription is automatically cancelled when [untrackListener] is called
+  /// or when [disposeAllTrackedListeners] is invoked.
   String trackListener(void Function(T state) listener) {
     final id = DateTime.now().microsecondsSinceEpoch.toString();
+    // Subscription is stored in _listeners map and cancelled via untrackListener
+    // or disposeAllTrackedListeners methods, not immediately.
+    // ignore: cancel_subscriptions
     final subscription = stream.listen(listener);
 
     _listeners[id] = _ListenerInfo(
@@ -329,7 +335,7 @@ class _ListenerInfo {
 class PureTTLStore<T> extends PureStore<T> {
   /// Creates a store with a time-to-live duration.
   PureTTLStore(
-    super.state, {
+    super._state, {
     required this.ttl,
     this.onExpire,
     super.onEvent,

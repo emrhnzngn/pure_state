@@ -1,5 +1,5 @@
-import 'package:pure_state/pure_state.dart';
 import 'package:flutter/material.dart';
+import 'package:pure_state/pure_state.dart';
 
 /// A widget that displays a floating debugger tool for EzState.
 ///
@@ -9,17 +9,21 @@ import 'package:flutter/material.dart';
 /// - Current State
 /// - Errors
 class PureDebugger extends StatefulWidget {
-  /// The child widget.
-  final Widget child;
-
-  /// Whether the debugger is enabled initially.
-  final bool enabled;
-
+  /// Creates a [PureDebugger] widget.
+  ///
+  /// - [child]: The widget tree to wrap with debugger functionality
+  /// - [enabled]: Whether the debugger is enabled (default: true)
   const PureDebugger({
     required this.child,
     this.enabled = true,
     super.key,
   });
+
+  /// The child widget.
+  final Widget child;
+
+  /// Whether the debugger is enabled initially.
+  final bool enabled;
 
   @override
   State<PureDebugger> createState() => _PureDebuggerState();
@@ -55,11 +59,11 @@ class _PureDebuggerState extends State<PureDebugger> {
     final startTime = DateTime.now();
     try {
       next(action);
-      
+
       // Post-execution (synchronous part)
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
-      
+
       _addEvent(
         _DebugEvent(
           type: _EventType.action,
@@ -70,7 +74,7 @@ class _PureDebuggerState extends State<PureDebugger> {
         ),
       );
     } catch (e) {
-       _addEvent(
+      _addEvent(
         _DebugEvent(
           type: _EventType.error,
           timestamp: startTime,
@@ -107,7 +111,7 @@ class _PureDebuggerState extends State<PureDebugger> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () => setState(() => _isOpen = false),
-                child: Container(
+                child: ColoredBox(
                   color: Colors.black54,
                   child: GestureDetector(
                     onTap: () {}, // Prevent closing when tapping panel
@@ -145,7 +149,8 @@ class _PureDebuggerState extends State<PureDebugger> {
             Expanded(
               child: ListView.builder(
                 itemCount: _events.length,
-                reverse: true, // Show newest at bottom (or top if we reversed list)
+                reverse:
+                    true, // Show newest at bottom (or top if we reversed list)
                 // Actually, let's show newest at TOP.
                 itemBuilder: (context, index) {
                   // Reverse index to show newest first
@@ -180,7 +185,7 @@ class _PureDebuggerState extends State<PureDebugger> {
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.white70),
-            onPressed: () => setState(() => _events.clear()),
+            onPressed: () => setState(_events.clear),
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
@@ -199,11 +204,9 @@ class _PureDebuggerState extends State<PureDebugger> {
       case _EventType.action:
         color = Colors.blueAccent;
         icon = Icons.bolt;
-        break;
       case _EventType.error:
         color = Colors.redAccent;
         icon = Icons.error_outline;
-        break;
     }
 
     return Card(
@@ -254,7 +257,7 @@ class _PureDebuggerState extends State<PureDebugger> {
       ),
     );
   }
-  
+
   String _formatTime(DateTime time) {
     return '${time.hour}:${time.minute}:${time.second}.${time.millisecond}';
   }
@@ -263,13 +266,6 @@ class _PureDebuggerState extends State<PureDebugger> {
 enum _EventType { action, error }
 
 class _DebugEvent {
-  final _EventType type;
-  final DateTime timestamp;
-  final String store;
-  final String action;
-  final Duration? duration;
-  final String? error;
-
   _DebugEvent({
     required this.type,
     required this.timestamp,
@@ -278,4 +274,10 @@ class _DebugEvent {
     this.duration,
     this.error,
   });
+  final _EventType type;
+  final DateTime timestamp;
+  final String store;
+  final String action;
+  final Duration? duration;
+  final String? error;
 }

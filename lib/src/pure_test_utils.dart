@@ -230,7 +230,7 @@ class PureTestUtils {
 
         // Verify expected states
         final equalsFn = equals ?? (a, b) => a == b;
-        
+
         if (actualStates.length != expectedStates.length) {
           throw StateError(
             'Expected ${expectedStates.length} states, but got ${actualStates.length}\n'
@@ -306,7 +306,9 @@ class PureTestUtils {
   }) async {
     final file = File(snapshotFile);
     final stateJson = toJson(state);
-    final stateJsonString = const JsonEncoder.withIndent('  ').convert(stateJson);
+    final stateJsonString = const JsonEncoder.withIndent(
+      '  ',
+    ).convert(stateJson);
 
     if (!file.existsSync() || updateSnapshots) {
       // Create or update snapshot
@@ -339,7 +341,7 @@ class PureTestUtils {
   ///   store,
   ///   duration: Duration(seconds: 2),
   /// );
-  /// 
+  ///
   /// for (final entry in timeline) {
   ///   print('${entry.timestamp}: ${entry.state}');
   /// }
@@ -353,10 +355,12 @@ class PureTestUtils {
     final completer = Completer<void>();
 
     subscription = store.stream.listen((state) {
-      timeline.add(TimestampedState(
-        state: state,
-        timestamp: DateTime.now(),
-      ));
+      timeline.add(
+        TimestampedState(
+          state: state,
+          timestamp: DateTime.now(),
+        ),
+      );
     });
 
     Timer(duration, () {
@@ -443,7 +447,7 @@ class MockPureStore<T> extends PureStore<T> {
     if (states == null || states.isEmpty) return;
 
     final delay = emitDelay ?? const Duration(milliseconds: 100);
-    
+
     for (var i = 0; i < states.length; i++) {
       Timer(delay * (i + 1), () {
         setValue(states[i]);
@@ -485,7 +489,7 @@ class TimestampedState<T> {
 class PureIntegrationTest {
   /// Creates an integration test helper.
   PureIntegrationTest({List<PureStore<dynamic>>? stores})
-      : stores = stores ?? [];
+    : stores = stores ?? [];
 
   /// List of stores to manage.
   final List<PureStore<dynamic>> stores;
@@ -505,7 +509,7 @@ class PureIntegrationTest {
 
   /// Resets all stores to their initial state.
   Future<void> resetAllStores() async {
-    for (final store in stores) {
+    for (final _ in stores) {
       // This is a simplified reset - in reality, you'd need to track initial states
       // or provide a reset mechanism in PureStore
     }
@@ -517,7 +521,7 @@ class PureIntegrationTest {
   }) async {
     // Wait for all action queues to be empty
     // This would require exposing queue status in PureStore
-    await Future<void>.delayed(Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
   }
 
   /// Executes a test scenario with automatic setup and teardown.
@@ -532,7 +536,7 @@ class PureIntegrationTest {
       await teardown();
     }
   }
-  
+
   /// Registers a store for management.
   void registerStore(PureStore<dynamic> store) {
     stores.add(store);

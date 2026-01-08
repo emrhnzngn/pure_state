@@ -384,13 +384,13 @@ class ComputedValue2<T1, T2, R> {
   void _setupSubscriptions() {
     _value = compute(store1.state, store2.state);
 
-    _subscriptions.add(
-      store1.stream.listen((_) => _recompute()),
-    );
-
-    _subscriptions.add(
-      store2.stream.listen((_) => _recompute()),
-    );
+    _subscriptions
+      ..add(
+        store1.stream.listen((_) => _recompute()),
+      )
+      ..add(
+        store2.stream.listen((_) => _recompute()),
+      );
   }
 
   void _recompute() {

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 /// A sealed class representing the state of an asynchronous operation.
 ///
 /// [AsyncValue] can be in one of three states:
@@ -27,6 +29,7 @@ import 'dart:async';
 ///   error: (err, stack) => Text('Error: $err'),
 /// );
 /// ```
+@immutable
 sealed class AsyncValue<T> {
   const AsyncValue();
 
@@ -108,10 +111,10 @@ sealed class AsyncValue<T> {
   /// );
   /// ```
   R maybeWhen<R>({
+    required R Function() orElse,
     R Function(T data)? data,
     R Function()? loading,
     R Function(Object error, StackTrace? stackTrace)? error,
-    required R Function() orElse,
   }) {
     final self = this;
     if (self is AsyncData<T> && data != null) {
@@ -207,6 +210,7 @@ sealed class AsyncValue<T> {
 }
 
 /// Represents a successful async operation with data.
+@immutable
 final class AsyncData<T> extends AsyncValue<T> {
   /// Creates an [AsyncData] with the given value.
   const AsyncData(this.data);
@@ -216,12 +220,14 @@ final class AsyncData<T> extends AsyncValue<T> {
 }
 
 /// Represents an async operation in progress.
+@immutable
 final class AsyncLoading<T> extends AsyncValue<T> {
   /// Creates an [AsyncLoading] state.
   const AsyncLoading();
 }
 
 /// Represents a failed async operation with an error.
+@immutable
 final class AsyncError<T> extends AsyncValue<T> {
   /// Creates an [AsyncError] with the given error and optional stack trace.
   const AsyncError(this.error, [this.stackTrace]);

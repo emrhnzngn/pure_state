@@ -30,7 +30,7 @@ import 'package:pure_state/src/pure_store_container.dart';
 class PureStoreFamily<T, Param> {
   /// Creates a new [PureStoreFamily].
   ///
-  /// - [create]: Factory function that creates a store for a given parameter
+  /// - 'create': Factory function that creates a store for a given parameter
   /// - [container]: Optional store container for dependency injection
   PureStoreFamily(
     this._create, {

@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:pure_state/src/pure_provider.dart';
 import 'package:pure_state/src/pure_selector.dart';
 import 'package:pure_state/src/pure_store.dart';
-import 'package:flutter/material.dart';
 
 /// Extension methods on [BuildContext] for accessing stores.
 ///

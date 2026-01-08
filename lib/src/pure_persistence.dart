@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:pure_state/src/pure_action.dart';
 import 'package:pure_state/src/pure_store.dart';
-import 'package:flutter/foundation.dart';
 
 /// Abstract interface for storage operations.
 ///

@@ -1,5 +1,5 @@
-import 'package:pure_state/src/pure_value.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pure_state/src/pure_value.dart';
 
 void main() {
   group('PureValue', () {
@@ -9,28 +9,26 @@ void main() {
     });
 
     test('update modulates the value', () {
-      final value = PureValue<int>(0);
-      value.update((val) => val + 1);
+      final value = PureValue<int>(0)..update((val) => val + 1);
       expect(value.value, 1);
     });
 
     test('set updates the value', () {
-      final value = PureValue<String>('initial');
-      value.set('defined');
+      final value = PureValue<String>('initial')..value = 'defined';
       expect(value.value, 'defined');
     });
 
     test('listeners are notified on change', () {
       final value = PureValue<int>(0);
-      int notificationCount = 0;
-      
-      value.addListener(() {
-        notificationCount++;
-      });
+      var notificationCount = 0;
 
-      value.value = 1;
+      value
+        ..addListener(() {
+          notificationCount++;
+        })
+        ..value = 1;
       expect(notificationCount, 1);
-      
+
       value.update((val) => val + 1);
       expect(notificationCount, 2);
     });

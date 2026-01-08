@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:pure_state/src/pure_store.dart';
+import 'package:pure_state/pure_state.dart';
 
 /// A lightweight state holder that extends [ValueNotifier].
 ///
@@ -24,7 +24,7 @@ import 'package:pure_state/src/pure_store.dart';
 /// ```
 class PureValue<T> extends ValueNotifier<T> {
   /// Creates a [PureValue] with an initial value.
-  PureValue(super.value);
+  PureValue(super._value);
 
   /// Updates the value using a transformation function.
   ///
@@ -36,10 +36,5 @@ class PureValue<T> extends ValueNotifier<T> {
   /// ```
   void update(T Function(T value) updater) {
     value = updater(value);
-  }
-
-  /// Sets the value (alias for setter).
-  void set(T newValue) {
-    value = newValue;
   }
 }

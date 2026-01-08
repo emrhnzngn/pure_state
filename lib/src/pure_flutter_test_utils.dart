@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+// This file is intended for use in test projects only.
+// flutter_test is available in dev_dependencies for this package,
+// and will be available in test projects that use this package.
+// ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pure_state/src/pure_action.dart';
 import 'package:pure_state/src/pure_provider.dart';
@@ -53,7 +57,7 @@ extension PureFlutterTestExtension on WidgetTester {
     required Widget child,
     Duration? duration,
   }) async {
-    Widget wrappedChild = child;
+    var wrappedChild = child;
 
     // Wrap child with providers in reverse order
     for (var i = providers.length - 1; i >= 0; i--) {
@@ -288,6 +292,9 @@ class PureWidgetTest {
     final providers = stores.entries
         .map(
           (entry) =>
+              // Type annotation is required here because Dart cannot infer
+              // the type of 'child' parameter in the nested closure.
+              // ignore: avoid_types_on_closure_parameters
               (Widget child) => PureProvider(store: entry.value, child: child),
         )
         .toList();

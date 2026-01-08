@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:pure_state/src/pure_action.dart';
 import 'package:pure_state/src/pure_equality.dart';
+import 'package:pure_state/src/pure_performance_profiler.dart';
 import 'package:pure_state/src/pure_priority_queue.dart';
 import 'package:pure_state/src/pure_store_container.dart';
-import 'package:flutter/material.dart';
 
 /// Type definition for the next dispatcher in middleware chain.
 typedef NextDispatcher<T> = void Function(PureAction<T> action);
@@ -47,16 +48,6 @@ typedef GlobalMiddlewareWithResult =
 
 /// Core store class for managing application state.
 class PureStore<T> {
-  // Named constants for configuration values
-  /// Default maximum number of actions to process per cycle.
-  static const int defaultMaxActionsPerCycle = 10;
-
-  /// Default maximum processing time in milliseconds per cycle.
-  static const int defaultMaxProcessingTimeMs = 8;
-
-  /// Default maximum number of states to keep in history.
-  static const int defaultHistoryLimit = 50;
-
   /// Creates a new [PureStore] with the initial state.
   ///
   /// - [state]: Initial state
@@ -87,6 +78,15 @@ class PureStore<T> {
       _adaptiveDelayTracker = _AdaptiveDelayTracker();
     }
   }
+  // Named constants for configuration values
+  /// Default maximum number of actions to process per cycle.
+  static const int defaultMaxActionsPerCycle = 10;
+
+  /// Default maximum processing time in milliseconds per cycle.
+  static const int defaultMaxProcessingTimeMs = 8;
+
+  /// Default maximum number of states to keep in history.
+  static const int defaultHistoryLimit = 50;
 
   /// Current state value.
   T _state;
@@ -215,6 +215,37 @@ class PureStore<T> {
     };
   }
 
+  /// Enables performance profiling for this store.
+  ///
+  /// - [profiler]: The profiler instance to use (creates a new one if null)
+  /// - [maxHistorySize]: Maximum number of action executions to track (if creating new profiler)
+  /// - [enableDetailedMetrics]: Whether to collect detailed metrics (if creating new profiler)
+  void enableProfiling({
+    PurePerformanceProfiler? profiler,
+    int? maxHistorySize,
+    bool? enableDetailedMetrics,
+  }) {
+    _profiler =
+        profiler ??
+        PurePerformanceProfiler(
+          maxHistorySize: maxHistorySize ?? 1000,
+          enableDetailedMetrics: enableDetailedMetrics ?? true,
+        );
+  }
+
+  /// Disables performance profiling for this store.
+  void disableProfiling() {
+    _profiler = null;
+  }
+
+  /// Gets the performance profiler if enabled.
+  PurePerformanceProfiler? get profiler => _profiler;
+
+  /// Gets performance metrics if profiling is enabled.
+  PerformanceMetrics? getPerformanceMetrics() {
+    return _profiler?.getMetrics();
+  }
+
   /// Hash cache for efficient equality checks.
   final HashCache _hashCache;
 
@@ -226,6 +257,9 @@ class PureStore<T> {
 
   /// Pending state waiting to be emitted.
   T? _pendingState;
+
+  /// Optional performance profiler for tracking metrics.
+  PurePerformanceProfiler? _profiler;
 
   /// Gets the current state value.
   T get state => _state;
@@ -465,7 +499,7 @@ class PureStore<T> {
     return {
       'state': _state,
       'timestamp': DateTime.now().toIso8601String(),
-      'storeType': runtimeType.toString(),
+      'storeType': runtimeType,
     };
   }
 
@@ -624,7 +658,10 @@ class PureStore<T> {
     var processedCount = 0;
 
     // Only use stopwatch in batched mode to prevent overhead in simple mode
-    final stopwatch = isSimpleMode ? null : (Stopwatch()..start());
+    // Also use stopwatch if profiling is enabled
+    final stopwatch = (isSimpleMode && _profiler == null)
+        ? null
+        : (Stopwatch()..start());
 
     while (_actionQueue.isNotEmpty && _isValid) {
       // Check limits only in batched mode
@@ -656,6 +693,15 @@ class PureStore<T> {
       final action = _actionQueue.removeFirst();
       processedActions.add(action);
       processedCount++;
+
+      // Start profiling if enabled
+      Stopwatch? actionStopwatch;
+      var actionTypeName = '';
+
+      if (_profiler != null) {
+        actionStopwatch = Stopwatch()..start();
+        actionTypeName = action.runtimeType.toString();
+      }
 
       try {
         FutureOr<T> Function(PureAction<T>) executeAction;
@@ -698,6 +744,15 @@ class PureStore<T> {
                   : await executeResult)
             : executeResult;
 
+        // Record successful action execution
+        if (actionStopwatch != null && _profiler != null) {
+          actionStopwatch.stop();
+          _profiler!.recordActionExecution(
+            actionTypeName,
+            actionStopwatch.elapsed,
+          );
+        }
+
         if (!_isValid) {
           _actionQueue.clear();
           _isProcessing = false;
@@ -727,6 +782,16 @@ class PureStore<T> {
       } on Exception catch (e, stackTrace) {
         debugPrint('PureStore Error: $e');
         debugPrint('StackTrace: $stackTrace');
+
+        // Record failed action execution
+        if (actionStopwatch != null && _profiler != null) {
+          actionStopwatch.stop();
+          _profiler!.recordActionExecution(
+            actionTypeName,
+            actionStopwatch.elapsed,
+            error: e,
+          );
+        }
 
         final globalHandler = globalErrorHandler;
         if (globalHandler != null) {
@@ -772,6 +837,43 @@ class PureStore<T> {
           // Continue processing
         }
       }
+    }
+
+    // Record batch processing metrics if profiling is enabled
+    if (_profiler != null && stopwatch != null) {
+      stopwatch.stop();
+      final actionDurations = <int>[];
+      if (_profiler!.enableDetailedMetrics && processedActions.isNotEmpty) {
+        // Calculate min/max/average from recent metrics
+        final recentMetrics = _profiler!.getRecentActionMetrics(
+          processedActions.length,
+        );
+        if (recentMetrics.isNotEmpty) {
+          actionDurations.addAll(
+            recentMetrics.map((m) => m.duration),
+          );
+        }
+      }
+
+      _profiler!.recordBatchProcessing(
+        BatchProcessingMetrics(
+          actionsProcessed: processedCount,
+          totalDuration: stopwatch.elapsedMilliseconds,
+          timestamp: DateTime.now(),
+          isSimpleMode: isSimpleMode,
+          averageActionDuration: actionDurations.isNotEmpty
+              ? (actionDurations.reduce((a, b) => a + b) /
+                        actionDurations.length)
+                    .round()
+              : null,
+          maxActionDuration: actionDurations.isNotEmpty
+              ? actionDurations.reduce((a, b) => a > b ? a : b)
+              : null,
+          minActionDuration: actionDurations.isNotEmpty
+              ? actionDurations.reduce((a, b) => a < b ? a : b)
+              : null,
+        ),
+      );
     }
 
     // Final state update logic
@@ -894,6 +996,8 @@ class PureStore<T> {
 
     _adaptiveDelayTracker = null;
 
+    _profiler = null;
+
     if (!_controller.isClosed) {
       try {
         unawaited(_controller.close());
@@ -914,6 +1018,13 @@ class PureStore<T> {
 
 /// Internal class for tracking adaptive batch delay.
 class _AdaptiveDelayTracker {
+  /// Creates a new adaptive delay tracker.
+  _AdaptiveDelayTracker()
+    : minDelay = const Duration(milliseconds: _minDelayMs),
+      maxDelay = const Duration(milliseconds: _maxDelayMs),
+      initialDelay = const Duration(milliseconds: _initialDelayMs),
+      _currentDelay = const Duration(milliseconds: _initialDelayMs);
+
   /// Minimum adaptive delay in milliseconds.
   static const int _minDelayMs = 8;
 
@@ -922,13 +1033,6 @@ class _AdaptiveDelayTracker {
 
   /// Initial adaptive delay in milliseconds.
   static const int _initialDelayMs = 16;
-
-  /// Creates a new adaptive delay tracker.
-  _AdaptiveDelayTracker()
-    : minDelay = const Duration(milliseconds: _minDelayMs),
-      maxDelay = const Duration(milliseconds: _maxDelayMs),
-      initialDelay = const Duration(milliseconds: _initialDelayMs),
-      _currentDelay = const Duration(milliseconds: _initialDelayMs);
 
   /// Minimum delay value.
   final Duration minDelay;

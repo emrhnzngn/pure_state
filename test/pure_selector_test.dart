@@ -3,10 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pure_state/pure_state.dart';
 
 class CounterState {
+  CounterState({required this.count});
   final int count;
-  final String message;
-  
-  CounterState({required this.count, required this.message});
 }
 
 void main() {
@@ -15,10 +13,10 @@ void main() {
 
     setUp(() {
       // Replace global cache with one that has NO timer
-      PureEquality.debugReplaceGlobalCache(HashCache(autoClearInterval: null));
-      
+      PureEquality.debugReplaceGlobalCache(HashCache());
+
       store = PureStore<CounterState>(
-        CounterState(count: 0, message: 'init'),
+        CounterState(count: 0),
         batchDelay: Duration.zero,
       );
     });
@@ -30,8 +28,8 @@ void main() {
     });
 
     testWidgets('rebuilds only when selected value changes', (tester) async {
-      int buildCount = 0;
-      
+      var buildCount = 0;
+
       await tester.pumpWidget(
         MaterialApp(
           home: PureSelector<CounterState, int>(
@@ -48,16 +46,20 @@ void main() {
       expect(find.text('Count: 0'), findsOneWidget);
       expect(buildCount, 1);
 
-      // Update irrelevant part of state
-      store.update((state) => CounterState(count: 0, message: 'updated'));
-      await tester.pump(Duration(milliseconds: 20)); // Wait for batch delay
-      
+      // Update state with same count (should not rebuild)
+      store.update((state) => CounterState(count: 0));
+      await tester.pump(
+        const Duration(milliseconds: 20),
+      ); // Wait for batch delay
+
       // Should not rebuild
       expect(buildCount, 1);
 
       // Update relevant part
-      store.update((state) => CounterState(count: 1, message: 'updated'));
-      await tester.pump(Duration(milliseconds: 20)); // Wait for batch delay
+      store.update((state) => CounterState(count: 1));
+      await tester.pump(
+        const Duration(milliseconds: 20),
+      ); // Wait for batch delay
 
       expect(find.text('Count: 1'), findsOneWidget);
       expect(buildCount, 2);

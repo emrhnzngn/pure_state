@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:pure_state/src/pure_provider.dart';
 import 'package:pure_state/src/pure_store.dart';
-import 'package:flutter/material.dart';
 
 /// Widget that creates and provides a store, disposing it when removed.
 ///

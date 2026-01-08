@@ -15,6 +15,12 @@ import 'package:pure_state/src/pure_store.dart';
 /// )
 /// ```
 class PureSelector2<T1, T2, K> extends StatefulWidget {
+  /// Creates a [PureSelector2] widget.
+  ///
+  /// - [store1]: First store to listen to
+  /// - [store2]: Second store to listen to
+  /// - [selector]: Function that combines states from both stores
+  /// - [builder]: Function that builds the widget from the selected value
   const PureSelector2({
     required this.store1,
     required this.store2,
@@ -23,13 +29,21 @@ class PureSelector2<T1, T2, K> extends StatefulWidget {
     super.key,
   });
 
+  /// First store to listen to.
   final PureStore<T1> store1;
+
+  /// Second store to listen to.
   final PureStore<T2> store2;
+
+  /// Function that combines states from both stores.
   final K Function(T1 s1, T2 s2) selector;
+
+  /// Function that builds the widget from the selected value.
   final Widget Function(BuildContext context, K value) builder;
 
   @override
-  State<PureSelector2<T1, T2, K>> createState() => _PureSelector2State<T1, T2, K>();
+  State<PureSelector2<T1, T2, K>> createState() =>
+      _PureSelector2State<T1, T2, K>();
 }
 
 class _PureSelector2State<T1, T2, K> extends State<PureSelector2<T1, T2, K>> {
@@ -62,9 +76,10 @@ class _PureSelector2State<T1, T2, K> extends State<PureSelector2<T1, T2, K>> {
   @override
   void didUpdateWidget(PureSelector2<T1, T2, K> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.store1 != widget.store1 || oldWidget.store2 != widget.store2) {
-      _sub1?.cancel();
-      _sub2?.cancel();
+    if (oldWidget.store1 != widget.store1 ||
+        oldWidget.store2 != widget.store2) {
+      unawaited(_sub1?.cancel());
+      unawaited(_sub2?.cancel());
       _subscribe();
       _recalculate();
     }
@@ -72,8 +87,8 @@ class _PureSelector2State<T1, T2, K> extends State<PureSelector2<T1, T2, K>> {
 
   @override
   void dispose() {
-    _sub1?.cancel();
-    _sub2?.cancel();
+    unawaited(_sub1?.cancel());
+    unawaited(_sub2?.cancel());
     super.dispose();
   }
 
@@ -85,6 +100,13 @@ class _PureSelector2State<T1, T2, K> extends State<PureSelector2<T1, T2, K>> {
 
 /// A widget that rebuilds when three different stores change.
 class PureSelector3<T1, T2, T3, K> extends StatefulWidget {
+  /// Creates a [PureSelector3] widget.
+  ///
+  /// - [store1]: First store to listen to
+  /// - [store2]: Second store to listen to
+  /// - [store3]: Third store to listen to
+  /// - [selector]: Function that combines states from all three stores
+  /// - [builder]: Function that builds the widget from the selected value
   const PureSelector3({
     required this.store1,
     required this.store2,
@@ -94,17 +116,28 @@ class PureSelector3<T1, T2, T3, K> extends StatefulWidget {
     super.key,
   });
 
+  /// First store to listen to.
   final PureStore<T1> store1;
+
+  /// Second store to listen to.
   final PureStore<T2> store2;
+
+  /// Third store to listen to.
   final PureStore<T3> store3;
+
+  /// Function that combines states from all three stores.
   final K Function(T1 s1, T2 s2, T3 s3) selector;
+
+  /// Function that builds the widget from the selected value.
   final Widget Function(BuildContext context, K value) builder;
 
   @override
-  State<PureSelector3<T1, T2, T3, K>> createState() => _PureSelector3State<T1, T2, T3, K>();
+  State<PureSelector3<T1, T2, T3, K>> createState() =>
+      _PureSelector3State<T1, T2, T3, K>();
 }
 
-class _PureSelector3State<T1, T2, T3, K> extends State<PureSelector3<T1, T2, T3, K>> {
+class _PureSelector3State<T1, T2, T3, K>
+    extends State<PureSelector3<T1, T2, T3, K>> {
   late K _currentValue;
   StreamSubscription<T1>? _sub1;
   StreamSubscription<T2>? _sub2;
@@ -113,7 +146,11 @@ class _PureSelector3State<T1, T2, T3, K> extends State<PureSelector3<T1, T2, T3,
   @override
   void initState() {
     super.initState();
-    _currentValue = widget.selector(widget.store1.state, widget.store2.state, widget.store3.state);
+    _currentValue = widget.selector(
+      widget.store1.state,
+      widget.store2.state,
+      widget.store3.state,
+    );
     _subscribe();
   }
 
@@ -125,7 +162,11 @@ class _PureSelector3State<T1, T2, T3, K> extends State<PureSelector3<T1, T2, T3,
 
   void _recalculate() {
     if (!mounted) return;
-    final newValue = widget.selector(widget.store1.state, widget.store2.state, widget.store3.state);
+    final newValue = widget.selector(
+      widget.store1.state,
+      widget.store2.state,
+      widget.store3.state,
+    );
     if (!PureEquality.deepEq(_currentValue, newValue)) {
       setState(() {
         _currentValue = newValue;
@@ -136,10 +177,12 @@ class _PureSelector3State<T1, T2, T3, K> extends State<PureSelector3<T1, T2, T3,
   @override
   void didUpdateWidget(PureSelector3<T1, T2, T3, K> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.store1 != widget.store1 || oldWidget.store2 != widget.store2 || oldWidget.store3 != widget.store3) {
-      _sub1?.cancel();
-      _sub2?.cancel();
-      _sub3?.cancel();
+    if (oldWidget.store1 != widget.store1 ||
+        oldWidget.store2 != widget.store2 ||
+        oldWidget.store3 != widget.store3) {
+      unawaited(_sub1?.cancel());
+      unawaited(_sub2?.cancel());
+      unawaited(_sub3?.cancel());
       _subscribe();
       _recalculate();
     }
@@ -147,9 +190,9 @@ class _PureSelector3State<T1, T2, T3, K> extends State<PureSelector3<T1, T2, T3,
 
   @override
   void dispose() {
-    _sub1?.cancel();
-    _sub2?.cancel();
-    _sub3?.cancel();
+    unawaited(_sub1?.cancel());
+    unawaited(_sub2?.cancel());
+    unawaited(_sub3?.cancel());
     super.dispose();
   }
 

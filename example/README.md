@@ -1,144 +1,219 @@
-# Pure State Example - Todo Manager
+# Pure State Example App
 
-Bu, Pure State paketinin kapsamlı bir örnek uygulamasıdır. Modern bir Todo Manager uygulaması olarak, paketin tüm özelliklerini gösterir.
+Bu örnek uygulama, **Pure State** kütüphanesinin tüm gelişmiş özelliklerini gösteren kapsamlı bir Task Management (Görev Yönetimi) uygulamasıdır.
 
-## Özellikler
+## 🏗️ Proje Yapısı
 
-### State Management
-- ✅ **Multi-Store Yapısı**: Todo ve Settings için ayrı store'lar
-- ✅ **Store Container**: Store'lar arası iletişim
-- ✅ **Priority Queue**: Action öncelik sıralaması
-- ✅ **Middleware**: Logging ve monitoring
-- ✅ **Async Actions**: Simüle edilmiş API çağrıları
-
-### UI Bileşenleri
-- ✅ **PureBuilder**: State değişikliklerinde otomatik rebuild
-- ✅ **PureSelector**: Sadece seçili state değiştiğinde rebuild
-- ✅ **PureListener**: Side effect'ler için listener
-- ✅ **PureProvider**: Store'ları widget tree'ye sağlama
-
-### Todo Özellikleri
-- ✅ Todo ekleme, düzenleme, silme
-- ✅ Todo tamamlama/tamamlanmamış yapma
-- ✅ Kategori bazlı filtreleme
-- ✅ Arama fonksiyonu
-- ✅ Öncelik seviyeleri (Düşük, Orta, Yüksek)
-- ✅ İstatistikler (Toplam, Tamamlanan, Aktif, Yüksek Öncelik)
-- ✅ Filtreleme (Tümü, Aktif, Tamamlanan)
-
-### Settings
-- ✅ Tema değiştirme (Sistem, Açık, Koyu)
-- ✅ Dil seçimi
-- ✅ Bildirim ayarları
-- ✅ Animasyon ayarları
-
-## Proje Yapısı
+Proje, **Clean Architecture** ve **Feature-Based** yaklaşımını kullanarak organize edilmiştir:
 
 ```
-example/
-├── lib/
-│   ├── main.dart                 # Ana uygulama dosyası
-│   ├── models/                   # State modelleri
-│   │   ├── todo_model.dart
-│   │   └── app_settings_model.dart
-│   ├── actions/                  # Action sınıfları
-│   │   ├── todo_actions.dart
-│   │   └── settings_actions.dart
-│   ├── stores/                   # Store yapılandırmaları
-│   │   └── app_stores.dart
-│   ├── screens/                  # Ekranlar
-│   │   ├── todo_list_screen.dart
-│   │   └── settings_screen.dart
-│   └── widgets/                  # Widget bileşenleri
-│       ├── todo_item_widget.dart
-│       ├── todo_stats_widget.dart
-│       └── add_todo_dialog.dart
-└── pubspec.yaml
+lib/
+├── core/                          # Uygulama genelinde paylaşılan kod
+│   ├── services/                  # API ve servisler
+│   │   └── api_service.dart
+│   └── stores/                    # Store yönetimi
+│       └── app_stores.dart
+├── features/                      # Özellik bazlı modüller
+│   ├── auth/                      # Kimlik doğrulama özelliği
+│   │   ├── actions/               # Auth aksiyonları
+│   │   │   └── user_actions.dart
+│   │   ├── models/                # Auth modelleri
+│   │   │   └── user_model.dart
+│   │   ├── screens/               # Auth ekranları
+│   │   │   └── login_screen.dart
+│   │   └── states/                # Auth state'leri
+│   │       └── user_state.dart
+│   ├── tasks/                     # Görev yönetimi özelliği
+│   │   ├── actions/
+│   │   │   └── task_actions.dart
+│   │   ├── models/
+│   │   │   └── task_model.dart
+│   │   ├── screens/
+│   │   │   └── home_screen.dart
+│   │   ├── states/
+│   │   │   └── task_state.dart
+│   │   └── widgets/               # Task-specific widgets
+│   │       ├── computed_statistics_widget.dart
+│   │       └── task_list_widget.dart
+│   └── settings/                  # Ayarlar özelliği
+│       ├── actions/
+│       │   └── settings_actions.dart
+│       ├── screens/
+│       │   └── settings_screen.dart
+│       └── states/
+│           └── settings_state.dart
+└── main.dart                      # Uygulama giriş noktası
 ```
 
-## Kullanılan Pure State Özellikleri
+## ✨ Gösterilen Özellikler
 
-### 1. Multi-Store Yapısı
-```dart
-final container = StoreContainer();
-final todoStore = PureStore<TodoState>(...);
-final settingsStore = PureStore<AppSettingsState>(...);
+### 1. **AsyncValue** 🔄
+- **Dosya**: `features/auth/states/user_state.dart`, `features/tasks/states/task_state.dart`
+- Asenkron operasyonları (loading, data, error) yönetir
+- Login ve task yükleme işlemlerinde kullanılır
 
-container.register<TodoState>(todoStore);
-container.register<AppSettingsState>(settingsStore);
-```
+### 2. **Action Retry & Error Handling** 🔁
+- **Dosya**: `features/auth/actions/user_actions.dart`, `features/tasks/actions/task_actions.dart`
+- Network hatalarında otomatik yeniden deneme
+- Exponential backoff stratejisi
+- Özelleştirilebilir retry mantığı
 
-### 2. Action Priority
-```dart
-class LoadTodosAction extends PureAction<TodoState> {
-  @override
-  int get priority => 3; // Çok yüksek öncelik
-}
-```
+### 3. **Authorization** 🔐
+- **Dosya**: `features/tasks/actions/task_actions.dart`
+- `PureAuthorizedAction` ile action-level yetkilendirme
+- Role-based access control (Admin, User, Guest)
+- Task silme ve oluşturma için yetki kontrolü
 
-### 3. Middleware
-```dart
-todoStore.addMiddleware(pureLogger);
-todoStore.addMiddlewareWithResult(pureLoggerWithResult);
-```
+### 4. **State Validation** ✅
+- **Dosya**: `features/settings/states/settings_state.dart`
+- `ValidatableState` mixin ile state doğrulama
+- Middleware ile otomatik validasyon
+- Gerçek zamanlı validasyon feedback
 
-### 4. PureSelector (Performans Optimizasyonu)
-```dart
-PureSelector<TodoState, TodoStats>(
-  selector: (state) => state.stats,
-  builder: (context, stats) => ...,
-)
-```
+### 5. **Computed Selectors** 🧮
+- **Dosya**: `features/tasks/widgets/computed_statistics_widget.dart`
+- Birden fazla store'dan türetilmiş değerler
+- `PureComputedSelector2` ile user ve task state'lerinden istatistik hesaplama
+- Memoization ile performans optimizasyonu
 
-### 5. PureListener (Side Effects)
-```dart
-PureListener<TodoState>(
-  listener: (context, state) {
-    // State değişikliklerinde yan etkiler
-  },
-  listenWhen: (previous, current) => ...,
-)
-```
+### 6. **Multi-Store Management** 🗂️
+- **Dosya**: `core/stores/app_stores.dart`
+- `StoreContainer` ile dependency injection
+- Store'lar arası cross-reference
+- Merkezi store yönetimi
 
-### 6. Async Actions
-```dart
-@override
-FutureOr<TodoState> execute(TodoState currentState) async {
-  await Future.delayed(Duration(seconds: 1));
-  // Async işlemler
-}
-```
+### 7. **Time-Travel Debugging** ⏱️
+- **Dosya**: `core/stores/app_stores.dart`
+- User ve Task store'ları için replay özelliği
+- State history tracking (50-100 entry)
+- Debug senaryoları için geri alma/ileri alma
 
-## Çalıştırma
+### 8. **Store Family & Auto-Dispose** 🏭
+- **Dosya**: `core/stores/app_stores.dart`
+- `PureStoreFamily` ile parametrik store oluşturma
+- `PureAutoDisposeStore` ile otomatik kaynak temizleme
+- User-specific task stores (5 dakika TTL)
 
-1. Önce paketi yükleyin:
+### 9. **Action Batching** 📦
+- Birden fazla aksiyonu tek state güncellemesinde birleştirme
+- UI performans optimizasyonu
+
+### 10. **Validation Middleware** 🛡️
+- Otomatik state validation
+- Hata yakalama ve loglama
+- Real-time validation feedback
+
+## 🎯 Feature Özellikleri
+
+### Auth Feature (Kimlik Doğrulama)
+- ✅ Login/Logout
+- ✅ AsyncValue ile loading states
+- ✅ Automatic retry on network errors
+- ✅ User profile management
+- ✅ Role-based authorization
+
+### Tasks Feature (Görev Yönetimi)
+- ✅ CRUD operations (Create, Read, Update, Delete)
+- ✅ Task filtering (All, Active, Completed)
+- ✅ Authorization checks
+- ✅ Computed statistics
+- ✅ Real-time updates
+- ✅ AsyncValue for async operations
+
+### Settings Feature (Ayarlar)
+- ✅ Theme management (Light/Dark/System)
+- ✅ Notification preferences
+- ✅ Auto-save toggle
+- ✅ State validation (Max tasks limit)
+- ✅ Real-time validation feedback
+
+## 🚀 Çalıştırma
+
 ```bash
-cd example
+# Dependencies'leri yükle
 flutter pub get
-```
 
-2. Uygulamayı çalıştırın:
-```bash
+# Uygulamayı çalıştır
 flutter run
 ```
 
-## Öğrenilen Kavramlar
+## 🔑 Demo Credentials
 
-Bu örnek uygulama şunları gösterir:
+### Admin User:
+- **Email**: admin@test.com
+- **Password**: password
+- **Permissions**: Tüm işlemler
 
-1. **State Management**: Pure State ile state yönetimi
-2. **Action Pattern**: Action-based state updates
-3. **Middleware**: Action'ları intercept etme ve loglama
-4. **Multi-Store**: Birden fazla store'u yönetme
-5. **Performance**: PureSelector ile optimize rebuild'ler
-6. **Side Effects**: PureListener ile yan etkileri yönetme
-7. **Async Operations**: Async action'lar ve timeout handling
-8. **Error Handling**: Hata yönetimi ve kullanıcı geri bildirimi
+### Regular User:
+- **Email**: user@test.com
+- **Password**: password
+- **Permissions**: Sadece kendi task'larını silebilir
 
-## Notlar
+## 📚 Mimari Kararları
 
-- Bu örnek uygulama, Pure State paketinin tüm özelliklerini gösterir
-- Gerçek bir API entegrasyonu yerine simüle edilmiş async işlemler kullanılmıştır
-- UI/UX modern ve kullanıcı dostu olacak şekilde tasarlanmıştır
-- Tüm state değişiklikleri loglanır (middleware sayesinde)
+### Clean Architecture
+- **Core**: Paylaşılan servisler ve store yönetimi
+- **Features**: Domain-specific kod (auth, tasks, settings)
+- **Separation of Concerns**: Her feature kendi models, states, actions ve screens'ine sahip
 
+### Feature-Based Organization
+- Her feature bağımsız bir modül
+- Kolay test edilebilirlik
+- Ölçeklenebilir yapı
+- Açık dependency boundaries
+
+### State Management Patterns
+- **Unidirectional Data Flow**: Actions → State → UI
+- **Immutable State**: Her state değişikliği yeni obje
+- **Type-Safe Actions**: Compile-time güvenlik
+- **Reactive UI**: Otomatik UI güncellemeleri
+
+## 🎨 UI/UX Features
+
+- ✅ Material Design 3
+- ✅ Dark/Light theme support
+- ✅ Responsive layout
+- ✅ Loading indicators
+- ✅ Error states
+- ✅ Empty states
+- ✅ Snackbar notifications
+- ✅ Dialog interactions
+
+## 🧪 Test Edilebilirlik
+
+Proje yapısı test yazmayı kolaylaştırır:
+- Feature-based organization ile unit test'ler
+- Mock store'lar ile widget test'leri
+- Integration test'ler için hazır yapı
+
+## 📖 Öğrenme Kaynakları
+
+Her özellik için detaylı açıklamalar:
+- [Pure State Documentation](../README.md)
+- [Examples](../EXAMPLES.md)
+- [Improvements](../IMPROVEMENTS.md)
+
+## 🔄 Güncelleme Geçmişi
+
+### v1.0.0 - Feature-Based Architecture
+- Clean Architecture yapısına geçiş
+- Feature-based organization
+- Tüm Pure State özelliklerinin entegrasyonu
+- Kapsamlı örnekler ve dökümentasyon
+
+## 💡 İpuçları
+
+1. **Login**: Demo credential'lardan birini kullanın
+2. **Theme**: Settings'den light/dark mode'u deneyin
+3. **Validation**: Settings'de max tasks değerini 1'den küçük yapın
+4. **Authorization**: Admin ve User hesapları arasındaki farkları deneyin
+5. **Statistics**: Task oluşturup tamamlayarak computed statistics'i gözlemleyin
+6. **Filtering**: Task filter'larını (All/Active/Completed) deneyin
+
+## 🤝 Katkıda Bulunma
+
+Pure State'e katkıda bulunmak için [CONTRIBUTING.md](../CONTRIBUTING.md) dosyasına bakın.
+
+## 📄 Lisans
+
+Bu örnek uygulama, Pure State kütüphanesi ile aynı lisansa sahiptir (MIT License).

@@ -144,20 +144,19 @@ class NamedAction<T> extends PureAction<T> {
   /// - [timeout]: Optional timeout
   NamedAction(
     this.name,
-    this._handler, {
+    PureLogic<T> handler, {
     this.timeout,
-  }) : super(_handler);
+  }) : super(handler);
 
   @override
   final String name;
-
-  final PureLogic<T> _handler;
 
   @override
   final Duration? timeout;
 
   @override
   FutureOr<T> execute(T currentState) {
-    return _handler(currentState);
+    // Use parent's execute method which uses the _handler passed to super()
+    return super.execute(currentState);
   }
 }

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
-
-import 'pure_config.dart';
+import 'package:pure_state/src/pure_config.dart';
 
 /// Default maximum cache size for hash cache.
 const int defaultHashCacheMaxSize = 1000;
@@ -132,15 +131,10 @@ class HashCache {
 /// Global hash cache instance for shared use across the application.
 class _GlobalHashCache {
   /// Singleton instance of the global hash cache.
-  static HashCache _instance = HashCache(
+  static HashCache instance = HashCache(
     maxCacheSize: defaultGlobalHashCacheMaxSize,
     autoClearInterval: const Duration(minutes: 5),
   );
-
-  /// Gets the global hash cache instance.
-  static HashCache get instance => _instance;
-
-  static set instance(HashCache value) => _instance = value;
 }
 
 /// Utility class for efficient equality comparisons.
@@ -152,6 +146,18 @@ class PureEquality {
   static const int _maxCollectionSizeForFastComparison = 1000;
 
   /// Sample size for large collection comparisons.
+  ///
+  /// When comparing large collections (>1000 elements), this determines how many
+  /// sample points to check from the beginning and end of the collection.
+  /// A value of 10 means checking 10 samples from the start and 10 from the end
+  /// (total ~20 checks) before falling back to full comparison.
+  ///
+  /// This value was chosen as a balance between:
+  /// - Performance: Too few samples (<5) might miss differences, too many (>20)
+  ///   reduces the performance benefit of sampling
+  /// - Accuracy: 10 samples from each end provides good coverage for detecting
+  ///   common difference patterns (changes at start, end, or distributed)
+  /// - Empirical testing: This value works well for typical use cases
   static const int _sampleSize = 10;
 
   /// Standard equality check using == operator.

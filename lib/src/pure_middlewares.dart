@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -43,31 +42,31 @@ class PureLogger<T> {
 
   /// Middleware function to be added to the store.
   void call(PureStore<T> store, PureAction<T> action, NextDispatcher<T> next) {
+    final prefix = name != null ? '[$name] ' : '';
+
     if (logActions) {
-      final prefix = name != null ? '[$name] ' : '';
       printFunction('${prefix}Action Dispatched: ${action.runtimeType}');
     }
 
-    final oldState = store.state;
+    final oldState = logState ? store.state : null;
 
     try {
       next(action);
 
-      if (logState) {
-        // Note: next() is synchronous for the dispatch part, but state update might happen later
-        // if using async actions or batching.
-        // For accurate diffing in async scenarios, one might need to hook into onEvent.
-        // But for simple logging, checking state after next() is a reasonable approximation
-        // for synchronous updates.
-        
-        // However, a better approach for a Logger Middleware is to hook into the store's onEvent
-        // but since middleware wraps the dispatch, we can't easily see the "final" state here asynchronously.
-        
-        // This simple logger logs the dispatch.
+      if (logState && oldState != null) {
+        final newState = store.state;
+        // Note: For async actions, state might not change immediately.
+        // This logs the immediate state after dispatch.
+        if (oldState != newState) {
+          printFunction('${prefix}State Changed: ${oldState.runtimeType}');
+          printFunction('$prefix  Old: $oldState');
+          printFunction('$prefix  New: $newState');
+        } else {
+          printFunction('${prefix}State Unchanged');
+        }
       }
     } catch (e) {
       if (logErrors) {
-        final prefix = name != null ? '[$name] ' : '';
         printFunction('${prefix}Action Error: $e');
       }
       rethrow;
@@ -80,10 +79,13 @@ class PureLogger<T> {
 /// This is not a standard middleware but a wrapper around state management.
 /// However, we can implement it as a class that manages history.
 class PureUndoRedo<T> {
+  /// Creates an undo/redo manager.
+  ///
+  /// - [maxHistory]: Maximum number of states to keep in history (default: 10)
+  PureUndoRedo({this.maxHistory = 10});
+
   /// Maximum history size.
   final int maxHistory;
-
-  PureUndoRedo({this.maxHistory = 10});
 
   final Queue<T> _past = Queue<T>();
   final Queue<T> _future = Queue<T>();
@@ -93,9 +95,9 @@ class PureUndoRedo<T> {
   /// Call this BEFORE dispatching an action that you want to be undoable.
   void record(T state) {
     if (_currentState != null && state != _currentState) {
-       // State has changed since last record, unlikely but possible if not coordinated
+      // State has changed since last record, unlikely but possible if not coordinated
     }
-    
+
     _past.addLast(state);
     if (_past.length > maxHistory) {
       _past.removeFirst();
@@ -117,7 +119,7 @@ class PureUndoRedo<T> {
 
     final current = _past.removeLast();
     _future.addLast(current);
-    
+
     final previous = _past.last;
     _currentState = previous;
     return previous;
@@ -133,7 +135,7 @@ class PureUndoRedo<T> {
     _currentState = nextState;
     return nextState;
   }
-  
+
   /// Clears history.
   void clear() {
     _past.clear();
@@ -144,11 +146,14 @@ class PureUndoRedo<T> {
 
 /// Middleware to prevent rapid firing of actions.
 class PureThrottle<T> {
+  /// Creates a throttle middleware.
+  PureThrottle(this.duration);
+
+  /// - [duration]: Minimum time between executions of the same action type
   final Duration duration;
   final Map<Type, DateTime> _lastExecutionTime = {};
 
-  PureThrottle(this.duration);
-
+  /// Middleware function that throttles actions based on their type.
   void call(PureStore<T> store, PureAction<T> action, NextDispatcher<T> next) {
     final now = DateTime.now();
     final actionType = action.runtimeType;
@@ -167,14 +172,17 @@ class PureThrottle<T> {
 
 /// Middleware to debounce actions.
 class PureDebounce<T> {
+  /// Creates a debounce middleware.
+  PureDebounce(this.duration);
+
+  /// - [duration]: Delay before executing the action after the last dispatch
   final Duration duration;
   final Map<Type, Timer> _timers = {};
 
-  PureDebounce(this.duration);
-
+  /// Middleware function that debounces actions based on their type.
   void call(PureStore<T> store, PureAction<T> action, NextDispatcher<T> next) {
     final actionType = action.runtimeType;
-    
+
     if (_timers.containsKey(actionType)) {
       _timers[actionType]?.cancel();
     }
@@ -184,7 +192,7 @@ class PureDebounce<T> {
       next(action);
     });
   }
-  
+
   /// Dispose timers (should be called when store is disposed if possible, or managed manually)
   void dispose() {
     for (final timer in _timers.values) {

@@ -1,7 +1,6 @@
-
-import 'package:pure_state/pure_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pure_state/pure_state.dart';
 
 // Test Store
 class TestStore extends PureStore<int> {
@@ -14,7 +13,9 @@ class IncrementAction extends PureAction<int> {
 }
 
 void main() {
-  testWidgets('PureDebugger shows floating button when enabled', (tester) async {
+  testWidgets('PureDebugger shows floating button when enabled', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: PureDebugger(
@@ -43,16 +44,11 @@ void main() {
   });
 
   testWidgets('PureDebugger captures actions', (tester) async {
-    // Skipping this test as it fails with "Multiple exceptions" in the test environment
-    // likely due to global middleware state not being cleaned up or async timer issues.
-    // Manual verification is recommended.
-    return; 
-    
     final store = TestStore();
-    
-    // We need to inject the middleware mechanism. 
-    // PureDebugger normally uses PureStore.addGlobalMiddleware when mounted.
-    
+
+    // PureDebugger uses PureStore.addGlobalMiddleware when mounted
+    // and removes it on dispose, so we need to ensure proper cleanup
+
     await tester.pumpWidget(
       MaterialApp(
         home: PureDebugger(
@@ -68,6 +64,9 @@ void main() {
       ),
     );
 
+    // Wait for PureDebugger to mount and attach middleware
+    await tester.pump();
+
     await tester.tap(find.text('Increment'));
     await tester.pumpAndSettle();
 
@@ -78,7 +77,11 @@ void main() {
     // Check if action is logged
     expect(find.text('IncrementAction'), findsOneWidget);
     expect(find.text('Store: TestStore'), findsOneWidget);
-    
+
+    // Cleanup: Unmount widget to trigger dispose and remove global middleware
+    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    await tester.pumpAndSettle();
+
     store.dispose();
   });
 }

@@ -26,7 +26,15 @@ extension PureStateHelper<T> on T {
   }
 }
 
+/// Extension methods for deep equality comparison.
+///
+/// Provides methods to compare objects deeply, including nested collections.
 extension PureEqualityHelper on Object {
+  /// Performs a deep equality check between this object and [other].
+  ///
+  /// Returns `true` if the objects are identical, equal using `==`, or
+  /// if they are collections (List, Map, Set) with equal elements.
+  /// Returns `false` otherwise.
   bool deepEquals(Object other) {
     if (identical(this, other)) return true;
     if (this == other) return true;

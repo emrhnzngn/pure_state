@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:pure_state/src/pure_store.dart';
 import 'package:flutter/material.dart';
+import 'package:pure_state/src/pure_store.dart';
 
 /// InheritedWidget that provides a [PureStore] to the widget tree.
 ///
