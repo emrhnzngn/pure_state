@@ -377,14 +377,22 @@ If you find Pure State helpful, please consider:
 
 ## 🔮 Roadmap
 
+- [x] **AsyncValue wrapper class** ✅ (v1.1.0)
+- [x] **Family pattern** (parametric providers) ✅ (v1.1.0)
+- [x] **Auto-dispose stores** ✅ (v1.1.0)
+- [x] **Action authorization** ✅ (v1.1.0)
+- [x] **State validation** ✅ (v1.1.0)
+- [x] **Retry mechanisms** ✅ (v1.1.0)
+- [x] **Computed selectors** ✅ (v1.1.0)
+- [x] **Enhanced testing utilities** ✅ (v1.1.0)
+- [x] **Golden test support** ✅ (v1.1.0)
+- [x] **Time-travel debugging** ✅ (v1.1.0)
+- [x] **VSCode snippets** ✅ (v1.1.0)
 - [ ] Code generation support (`build_runner`)
-- [ ] AsyncState wrapper class
-- [ ] Family pattern (parametric providers)
 - [ ] Effect system (watch callbacks)
 - [ ] VS Code extension
 - [ ] Flutter DevTools extension
 - [ ] Performance profiler API
-- [ ] More middleware examples
 
 ---
 

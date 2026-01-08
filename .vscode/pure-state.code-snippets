@@ -1,0 +1,285 @@
+{
+  "Pure State Store": {
+    "prefix": "purestore",
+    "body": [
+      "final ${1:name}Store = PureStore<${2:StateType}>(",
+      "  ${2:StateType}(${3:}),",
+      ");"
+    ],
+    "description": "Create a new PureStore"
+  },
+  "Pure Action": {
+    "prefix": "pureaction",
+    "body": [
+      "class ${1:ActionName} extends PureAction<${2:StateType}> {",
+      "  ${1:ActionName}(${3:});",
+      "",
+      "  @override",
+      "  ${2:StateType} execute(${2:StateType} state) {",
+      "    ${4:// Implement action logic}",
+      "    return state${5:.copyWith()};",
+      "  }",
+      "}"
+    ],
+    "description": "Create a PureAction class"
+  },
+  "Pure Async Action": {
+    "prefix": "pureasyncaction",
+    "body": [
+      "class ${1:ActionName} extends PureAction<${2:StateType}> {",
+      "  ${1:ActionName}(${3:});",
+      "",
+      "  @override",
+      "  Future<${2:StateType}> execute(${2:StateType} state) async {",
+      "    ${4:// Implement async action logic}",
+      "    return state${5:.copyWith()};",
+      "  }",
+      "}"
+    ],
+    "description": "Create an async PureAction class"
+  },
+  "Pure Authorized Action": {
+    "prefix": "pureauthorizedaction",
+    "body": [
+      "class ${1:ActionName} extends PureAuthorizedAction<${2:StateType}> {",
+      "  ${1:ActionName}(${3:});",
+      "",
+      "  @override",
+      "  bool authorize(${2:StateType} state) {",
+      "    ${4:// Check authorization}",
+      "    return ${5:true};",
+      "  }",
+      "",
+      "  @override",
+      "  ${2:StateType} executeAuthorized(${2:StateType} state) {",
+      "    ${6:// Implement action logic}",
+      "    return state${7:.copyWith()};",
+      "  }",
+      "}"
+    ],
+    "description": "Create a PureAuthorizedAction class"
+  },
+  "Pure Retryable Action": {
+    "prefix": "pureretryableaction",
+    "body": [
+      "class ${1:ActionName} extends PureRetryableAction<${2:StateType}> {",
+      "  ${1:ActionName}(${3:});",
+      "",
+      "  @override",
+      "  int get maxRetries => ${4:3};",
+      "",
+      "  @override",
+      "  Duration get retryDelay => const Duration(seconds: ${5:1});",
+      "",
+      "  @override",
+      "  bool shouldRetry(Object error) => error is ${6:Exception};",
+      "",
+      "  @override",
+      "  Future<${2:StateType}> executeWithRetry(${2:StateType} state) async {",
+      "    ${7:// Implement retryable action logic}",
+      "    return state${8:.copyWith()};",
+      "  }",
+      "}"
+    ],
+    "description": "Create a PureRetryableAction class"
+  },
+  "Pure Builder": {
+    "prefix": "purebuilder",
+    "body": [
+      "PureBuilder<${1:StateType}>(",
+      "  builder: (context, state) {",
+      "    return ${2:Widget}();",
+      "  },",
+      ")"
+    ],
+    "description": "Create a PureBuilder widget"
+  },
+  "Pure Selector": {
+    "prefix": "pureselector",
+    "body": [
+      "PureSelector<${1:StateType}, ${2:Selected}>(",
+      "  store: ${3:store},",
+      "  selector: (state) => state.${4:property},",
+      "  builder: (context, ${5:selected}) {",
+      "    return ${6:Widget}();",
+      "  },",
+      ")"
+    ],
+    "description": "Create a PureSelector widget"
+  },
+  "Pure Computed Selector 2": {
+    "prefix": "purecomputed2",
+    "body": [
+      "PureComputedSelector2<${1:State1}, ${2:State2}, ${3:Result}>(",
+      "  store1: ${4:store1},",
+      "  store2: ${5:store2},",
+      "  selector: (s1, s2) => ${6:computation},",
+      "  builder: (context, result) {",
+      "    return ${7:Widget}();",
+      "  },",
+      ")"
+    ],
+    "description": "Create a PureComputedSelector2 widget"
+  },
+  "Pure Listener": {
+    "prefix": "purelistener",
+    "body": [
+      "PureListener<${1:StateType}>(",
+      "  listener: (context, state) {",
+      "    ${2:// Handle side effects}",
+      "  },",
+      "  listenWhen: (previous, current) => ${3:condition},",
+      "  child: ${4:child},",
+      ")"
+    ],
+    "description": "Create a PureListener widget"
+  },
+  "Pure Provider": {
+    "prefix": "pureprovider",
+    "body": [
+      "PureProvider<${1:StateType}>(",
+      "  store: ${2:store},",
+      "  child: ${3:child},",
+      ")"
+    ],
+    "description": "Create a PureProvider widget"
+  },
+  "Pure State Class": {
+    "prefix": "purestate",
+    "body": [
+      "class ${1:StateName} {",
+      "  const ${1:StateName}({",
+      "    ${2:required this.property},",
+      "  });",
+      "",
+      "  ${3:final Type property};",
+      "",
+      "  ${1:StateName} copyWith({",
+      "    ${3:Type}? ${4:property},",
+      "  }) {",
+      "    return ${1:StateName}(",
+      "      ${4:property}: ${4:property} ?? this.${4:property},",
+      "    );",
+      "  }",
+      "",
+      "  @override",
+      "  bool operator ==(Object other) =>",
+      "      identical(this, other) ||",
+      "      other is ${1:StateName} &&",
+      "          runtimeType == other.runtimeType &&",
+      "          ${4:property} == other.${4:property};",
+      "",
+      "  @override",
+      "  int get hashCode => ${4:property}.hashCode;",
+      "}"
+    ],
+    "description": "Create a State class with copyWith"
+  },
+  "Pure AsyncValue": {
+    "prefix": "pureasyncvalue",
+    "body": [
+      "AsyncValue<${1:Type}> ${2:value} = const AsyncLoading();",
+      "",
+      "${2:value}.when(",
+      "  data: (data) => ${3:Widget}(),",
+      "  loading: () => const CircularProgressIndicator(),",
+      "  error: (err, stack) => Text('Error: \\$err'),",
+      ")"
+    ],
+    "description": "Create an AsyncValue with when handler"
+  },
+  "Pure Store Family": {
+    "prefix": "purestorefamily",
+    "body": [
+      "final ${1:name}Family = PureStoreFamily<${2:StateType}, ${3:ParamType}>(",
+      "  (${4:param}) => PureStore<${2:StateType}>(",
+      "    ${2:StateType}(${5:id: ${4:param}}),",
+      "  ),",
+      ");"
+    ],
+    "description": "Create a PureStoreFamily"
+  },
+  "Pure Auto Dispose Store": {
+    "prefix": "pureautodisposestore",
+    "body": [
+      "final ${1:name}Store = PureAutoDisposeStore<${2:StateType}>(",
+      "  ${2:StateType}(${3:}),",
+      "  keepAliveFor: const Duration(${4:minutes: 5}),",
+      ");"
+    ],
+    "description": "Create a PureAutoDisposeStore"
+  },
+  "Pure Store Test": {
+    "prefix": "purestoretest",
+    "body": [
+      "await PureTestUtils.storeTest<${1:StateType}>(",
+      "  description: '${2:test description}',",
+      "  build: () => PureStore(${1:StateType}(${3:})),",
+      "  act: (store) => store.dispatch(${4:Action}()),",
+      "  expect: () => [",
+      "    ${5:expectedState},",
+      "  ],",
+      ");"
+    ],
+    "description": "Create a PureStore test"
+  },
+  "Pure Validated State": {
+    "prefix": "purevalidatedstate",
+    "body": [
+      "class ${1:StateName} with ValidatableState {",
+      "  const ${1:StateName}({",
+      "    ${2:required this.property},",
+      "  });",
+      "",
+      "  ${3:final Type property};",
+      "",
+      "  @override",
+      "  ValidationResult validate() {",
+      "    final errors = <String>[];",
+      "",
+      "    ${4:// Add validation rules}",
+      "",
+      "    return ValidationResult(errors);",
+      "  }",
+      "",
+      "  ${1:StateName} copyWith({",
+      "    ${3:Type}? ${5:property},",
+      "  }) {",
+      "    return ${1:StateName}(",
+      "      ${5:property}: ${5:property} ?? this.${5:property},",
+      "    );",
+      "  }",
+      "}"
+    ],
+    "description": "Create a ValidatableState class"
+  },
+  "Pure Middleware": {
+    "prefix": "puremiddleware",
+    "body": [
+      "void ${1:name}Middleware<T>(",
+      "  PureStore<T> store,",
+      "  PureAction<T> action,",
+      "  NextDispatcher<T> next,",
+      ") {",
+      "  ${2:// Before action execution}",
+      "  ",
+      "  next(action);",
+      "  ",
+      "  ${3:// After action execution}",
+      "}"
+    ],
+    "description": "Create a PureMiddleware"
+  },
+  "Pure Batch Actions": {
+    "prefix": "purebatch",
+    "body": [
+      "await ${1:store}.batch(() {",
+      "  dispatch(${2:Action1}());",
+      "  dispatch(${3:Action2}());",
+      "  dispatch(${4:Action3}());",
+      "});"
+    ],
+    "description": "Batch multiple actions"
+  }
+}
+

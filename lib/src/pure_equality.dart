@@ -156,9 +156,23 @@ class PureEquality {
 
   /// Standard equality check using == operator.
   ///
-  /// First checks for identity, then falls back to == operator.
+  /// First checks for identity, then hashCode for quick rejection,
+  /// then falls back to == operator for deep comparison.
+  ///
+  /// Performance optimization: hashCode comparison is O(1) and can quickly
+  /// reject unequal objects before expensive == checks.
   static bool eq(Object? a, Object? b) {
     if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+
+    // Quick rejection via hashCode - if hashes differ, objects are definitely not equal
+    // This is safe because equal objects MUST have equal hashCodes (per Dart contract)
+    try {
+      if (a.hashCode != b.hashCode) return false;
+    } on Exception catch (_) {
+      // If hashCode throws, fall back to == check
+    }
+
     return a == b;
   }
 

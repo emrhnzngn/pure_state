@@ -16,6 +16,15 @@ topics:
   - reactive
   - performance
   - architecture
+  - bloc
+  - riverpod
+  - provider
+  - flutter
+  - dart
+  - async
+  - testing
+  - middleware
+  - immutable
 
 environment:
   sdk: ^3.10.0
