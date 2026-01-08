@@ -409,5 +409,5 @@ test('increments count when IncrementAction dispatched', () async {
 
 - Check the [Pure State documentation](../README.md)
 - Look at the [example app](../example/)
-- Open an [issue](https://github.com/yourusername/pure_state/issues) if you're stuck
+- Open an [issue](https://github.com/emrhnzngn/pure_state/issues) if you're stuck
 

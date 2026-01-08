@@ -239,7 +239,7 @@ static Future<void> waitForState<T>(
 
 1. **Fork and clone the repository**
    ```bash
-   git clone https://github.com/yourusername/pure_state.git
+   git clone https://github.com/emrhnzngn/pure_state.git
    cd pure_state
    ```
 

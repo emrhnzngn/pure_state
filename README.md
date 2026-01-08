@@ -330,7 +330,7 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 ### Development Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/pure_state.git
+git clone https://github.com/emrhnzngn/pure_state.git
 
 # Install dependencies
 cd pure_state
@@ -367,7 +367,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🌟 Support
 
 If you find Pure State helpful, please consider:
-- ⭐ Starring the repo on [GitHub](https://github.com/yourusername/pure_state)
+- ⭐ Starring the repo on [GitHub](https://github.com/emrhnzngn/pure_state)
 - 👍 Liking the package on [pub.dev](https://pub.dev/packages/pure_state)
 - 🐛 Reporting issues
 - 💡 Suggesting new features
@@ -396,9 +396,9 @@ Created with ❤️ by the Pure State team.
 
 ## 📧 Contact
 
-- Issues: [GitHub Issues](https://github.com/yourusername/pure_state/issues)
-- Discussions: [GitHub Discussions](https://github.com/yourusername/pure_state/discussions)
-- Twitter: [@yourusername](https://twitter.com/yourusername)
+- Issues: [GitHub Issues](https://github.com/emrhnzngn/pure_state/issues)
+- Discussions: [GitHub Discussions](https://github.com/emrhnzngn/pure_state/discussions)
+- Twitter: [@emrhnzngn](https://twitter.com/emrhnzngn)
 
 ---
 
