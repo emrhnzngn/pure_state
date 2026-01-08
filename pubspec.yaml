@@ -4,9 +4,9 @@ description: >
   priority-based action queues, adaptive batching, sampling equality,
   built-in debugger, and middleware support. Zero external dependencies.
 version: 1.0.0
-homepage: https://github.com/yourusername/pure_state
-repository: https://github.com/yourusername/pure_state
-issue_tracker: https://github.com/yourusername/pure_state/issues
+homepage: https://github.com/emrhnzngn/pure_state
+repository: https://github.com/emrhnzngn/pure_state
+issue_tracker: https://github.com/emrhnzngn/pure_state/issues
 documentation: https://pub.dev/documentation/pure_state/latest/
 
 topics:

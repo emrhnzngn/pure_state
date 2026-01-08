@@ -6,19 +6,25 @@ It's people like you that make Pure State such a great tool for the Flutter comm
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Your First Code Contribution](#your-first-code-contribution)
-  - [Pull Requests](#pull-requests)
-- [Style Guides](#style-guides)
-  - [Git Commit Messages](#git-commit-messages)
-  - [Dart Style Guide](#dart-style-guide)
-  - [Documentation Style Guide](#documentation-style-guide)
-- [Development Setup](#development-setup)
-- [Testing](#testing)
-- [Release Process](#release-process)
+- [Contributing to Pure State](#contributing-to-pure-state)
+  - [Table of Contents](#table-of-contents)
+  - [Code of Conduct](#code-of-conduct)
+    - [Our Pledge](#our-pledge)
+  - [How Can I Contribute?](#how-can-i-contribute)
+    - [Reporting Bugs](#reporting-bugs)
+      - [Template for Bug Reports](#template-for-bug-reports)
+    - [Documentation Style Guide](#documentation-style-guide)
+  - [Development Setup](#development-setup)
+    - [Prerequisites](#prerequisites)
+    - [Setup Steps](#setup-steps)
+    - [Project Structure](#project-structure)
+  - [Testing](#testing)
+    - [Running Tests](#running-tests)
+    - [Writing Tests](#writing-tests)
+    - [Test Coverage](#test-coverage)
+  - [Release Process](#release-process)
+  - [Questions?](#questions)
+  - [Recognition](#recognition)
 
 ## Code of Conduct
 
