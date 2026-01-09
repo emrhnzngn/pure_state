@@ -58,9 +58,6 @@ export 'src/pure_devtools.dart';
 export 'src/pure_equality.dart';
 export 'src/pure_error_builder.dart';
 export 'src/pure_extensions.dart';
-// Note: pure_flutter_test_utils.dart is not exported as it requires flutter_test
-// which is only available in dev_dependencies. Import it directly if needed:
-// import 'package:pure_state/src/pure_flutter_test_utils.dart';
 export 'src/pure_listener.dart';
 export 'src/pure_middlewares.dart';
 export 'src/pure_performance_profiler.dart';
@@ -72,7 +69,6 @@ export 'src/pure_state_helper.dart';
 export 'src/pure_store.dart';
 export 'src/pure_store_container.dart';
 export 'src/pure_store_family.dart';
-export 'src/pure_test_utils.dart';
 export 'src/pure_value.dart';
 export 'src/widgets/pure_debugger.dart';
 export 'src/widgets/pure_multi_selector.dart';

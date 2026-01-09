@@ -1,8 +1,5 @@
 name: pure_state
-description: >
-  High-performance, scalable state management for Flutter with 
-  priority-based action queues, adaptive batching, sampling equality,
-  built-in debugger, and middleware support. Zero external dependencies.
+description: A lightweight, clean and testable state management solution for Flutter, focusing on pure functions and immutability.
 version: 1.0.0
 homepage: https://github.com/emrhnzngn/pure_state
 repository: https://github.com/emrhnzngn/pure_state
@@ -35,8 +32,6 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
