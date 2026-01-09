@@ -13,7 +13,7 @@ jobs:
     
     steps:
       - name: 📚 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # Güncellendi
 
       - name: 🎯 Setup Flutter
         uses: subosito/flutter-action@v2
@@ -34,8 +34,8 @@ jobs:
   test:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         
@@ -56,15 +56,20 @@ jobs:
       - name: 🧪 Run tests
         run: flutter test --coverage --reporter expanded
 
+      # Codecov'u v5'e güncelledik. 
+      # EĞER CODECOV TOKEN'IN YOKSA BU ADIMI SİL YA DA YORUMA AL (# koyarak)
       - name: 📈 Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
-          file: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }} # Bunu GitHub Ayarlar > Secrets kısmına eklemen gerekir
+          files: coverage/lcov.info
           flags: unittests
           name: pure_state
           fail_ci_if_error: false
 
+  # Diğer job'lar genelde sorunsuzdur, sadece checkout versiyonlarını v4 yapalım.
+  
   test_example:
     name: Test Example App
     runs-on: ubuntu-latest
@@ -139,40 +144,3 @@ jobs:
 
       - name: 🚀 Dry run publish
         run: flutter pub publish --dry-run
-
-  coverage_report:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-      - name: 📚 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🎯 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.10.0'
-          channel: 'stable'
-          cache: true
-
-      - name: 📦 Get dependencies
-        run: flutter pub get
-
-      - name: 🧪 Run tests with coverage
-        run: flutter test --coverage
-
-      - name: 📊 Generate coverage report
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lcov
-          lcov --list coverage/lcov.info
-          lcov --summary coverage/lcov.info
-
-      - name: 📝 Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        with:
-          lcov-file: ./coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
