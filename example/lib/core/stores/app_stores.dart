@@ -7,6 +7,8 @@ import '../../features/settings/states/settings_state.dart';
 /// Global container for all stores with dependency injection.
 class AppStores {
   AppStores() {
+    // Initialize stores first (they need container)
+    // Note: userStore and taskStore are late final, so they're initialized here
     // Register stores in container for cross-store dependencies
     container.register<UserState>(userStore);
     container.register<TaskState>(taskStore);
@@ -30,15 +32,15 @@ class AppStores {
   final container = StoreContainer();
 
   /// User authentication store.
-  final userStore = PureStore<UserState>(
+  late final userStore = PureStore<UserState>(
     const UserState(),
-    container: StoreContainer(),
+    container: container,
   );
 
   /// Task management store (will be created per user with Family).
-  final taskStore = PureStore<TaskState>(
+  late final taskStore = PureStore<TaskState>(
     const TaskState(),
-    container: StoreContainer(),
+    container: container,
   );
 
   /// Settings store with persistence.
@@ -49,7 +51,8 @@ class AppStores {
     (userId) => PureAutoDisposeStore<TaskState>(
       const TaskState(),
       keepAliveFor: const Duration(minutes: 5),
-      onAutoDispose: () => debugPrint('🗑️ Task store for user $userId disposed'),
+      onAutoDispose: () =>
+          debugPrint('🗑️ Task store for user $userId disposed'),
       container: container,
     ),
   );

@@ -25,10 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login(BuildContext context) {
     final store = PureProvider.of<UserState>(context);
     store.dispatch(
-      LoginAction(
-        _emailController.text,
-        _passwordController.text,
-      ),
+      LoginAction(_emailController.text, _passwordController.text),
     );
   }
 
@@ -52,15 +49,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Pure State Example',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Task Management App',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 48),
 
@@ -74,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                            labelText: 'Email',
+                            labelText: 'Username',
                             prefixIcon: Icon(Icons.email),
                             border: OutlineInputBorder(),
                           ),
@@ -165,32 +162,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // Demo credentials
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '🎯 Demo Credentials:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('Admin: admin@test.com / password'),
-                      const Text('User: user@test.com / password'),
-                      const SizedBox(height: 8),
-                      Text(
-                        '💡 Features automatic retry on network errors!',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue[800],
-                          fontStyle: FontStyle.italic,
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '🎯 Demo Credentials:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        const Text('Admin: admin / 123'),
+                        const Text('User: user / 123'),
+                        const SizedBox(height: 8),
+                        Text(
+                          '💡 Features automatic retry on network errors!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue[800],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -201,4 +196,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

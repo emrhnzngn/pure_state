@@ -9,18 +9,18 @@ class ApiService {
   }
 
   /// Simulated login.
-  static Future<User> login(String email, String password) async {
+  static Future<User> login(String username, String password) async {
     await _delay();
 
     // Simulate different users
-    if (email == 'admin@test.com') {
+    if (username == 'admin') {
       return const User(
         id: 1,
         name: 'Admin User',
         email: 'admin@test.com',
         role: UserRole.admin,
       );
-    } else if (email == 'user@test.com') {
+    } else if (username == 'user') {
       return const User(
         id: 2,
         name: 'Regular User',
@@ -114,4 +114,3 @@ class NetworkException implements Exception {
   @override
   String toString() => 'NetworkException: $message';
 }
-

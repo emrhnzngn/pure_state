@@ -4,17 +4,14 @@ import '../models/user_model.dart';
 /// State for user authentication and profile.
 class UserState {
   const UserState({
-    this.currentUser = const AsyncValue.loading(),
+    this.currentUser = const AsyncValue.data(null),
     this.isAuthenticated = false,
   });
 
-  final AsyncValue<User> currentUser;
+  final AsyncValue<User?> currentUser;
   final bool isAuthenticated;
 
-  UserState copyWith({
-    AsyncValue<User>? currentUser,
-    bool? isAuthenticated,
-  }) {
+  UserState copyWith({AsyncValue<User?>? currentUser, bool? isAuthenticated}) {
     return UserState(
       currentUser: currentUser ?? this.currentUser,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -36,4 +33,3 @@ class UserState {
   String toString() =>
       'UserState(isAuthenticated: $isAuthenticated, user: $currentUser)';
 }
-

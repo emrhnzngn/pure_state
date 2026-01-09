@@ -1,12 +1,13 @@
 import 'package:pure_state/pure_state.dart';
 import '../../../core/services/api_service.dart';
 import '../states/user_state.dart';
+import '../../tasks/states/task_state.dart';
 
 /// Login action with retry logic for network failures.
 class LoginAction extends PureRetryableAction<UserState> {
-  LoginAction(this.email, this.password);
+  LoginAction(this.username, this.password);
 
-  final String email;
+  final String username;
   final String password;
 
   @override
@@ -22,9 +23,30 @@ class LoginAction extends PureRetryableAction<UserState> {
   }
 
   @override
+  Future<UserState> execute(UserState currentState) async {
+    // Önce loading state'i set et
+    // Bu state store'a hemen uygulanacak ve UI loading gösterecek
+    // Sonra executeWithRetry'yi çağıracağız
+    final loadingState = currentState.copyWith(
+      currentUser: const AsyncValue.loading(),
+      isAuthenticated: false,
+    );
+
+    // Şimdi gerçek login işlemini yap
+    try {
+      return await super.execute(loadingState);
+    } catch (e, stack) {
+      return loadingState.copyWith(
+        currentUser: AsyncError(e, stack),
+        isAuthenticated: false,
+      );
+    }
+  }
+
+  @override
   Future<UserState> executeWithRetry(UserState state) async {
     try {
-      final user = await ApiService.login(email, password);
+      final user = await ApiService.login(username, password);
       return state.copyWith(
         currentUser: AsyncData(user),
         isAuthenticated: true,
@@ -40,10 +62,17 @@ class LoginAction extends PureRetryableAction<UserState> {
 
 /// Logout action.
 class LogoutAction extends PureAction<UserState> {
+  LogoutAction({this.taskStore});
+
+  final PureStore<TaskState>? taskStore;
+
   @override
   UserState execute(UserState currentState) {
+    // Task state'i temizle
+    taskStore?.setValue(const TaskState());
+
     return const UserState(
-      currentUser: AsyncValue.loading(),
+      currentUser: AsyncValue.data(null),
       isAuthenticated: false,
     );
   }
